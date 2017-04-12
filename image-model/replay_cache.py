@@ -25,7 +25,6 @@ class ReplayCache():
         Expects images to be an ndarray of the shape B * H * W * C
         """
         if self.nelements + images.shape[0] <= self.cache_size:
-
             self.elements[self.nelements:self.nelements+images.shape[0]] = images
             self.nelements += images.shape[0]
 
@@ -40,6 +39,9 @@ class ReplayCache():
             self.elements[to_replace] = images[:extra]
 
     def next(self):
+        """
+        returns self.batch_size images
+        """
         chosen = self.sample(self.batch_size)
         return self.elements[chosen]
 

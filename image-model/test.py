@@ -11,7 +11,7 @@ import single_reader as reader
 
 from skimage.color import gray2rgb
 
-# Basic model parameters as external flags.  Not sure where this goes with flags.
+# Basic model parameters as external flags
 FLAGS = None
 
 def get_placeholder(batch_size,channels):
@@ -50,10 +50,8 @@ def get_test_fetch(synth_placeholder,model):
 
 def test():
     """
-    Test.  Just run images through generator.  Requires for the proper generator arch to be Flagged
+    Just run images through generator.  Requires for the proper generator arch to be Flagged
     """
-
-    #should I open an image_reader for both classes?  I think so.
     image_reader = reader.ImageReader(FLAGS.test_dir,FLAGS.image_size,FLAGS.channels)
     num_images = image_reader.num_images()
     model = model_test.GanModel(FLAGS.batch_size,FLAGS.image_size,FLAGS.gen_arch,FLAGS.batch_norm)

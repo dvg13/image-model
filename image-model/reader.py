@@ -35,8 +35,7 @@ class ImageReader():
             q.put(f)
 
     def get_batch(self,q,filenames,channels,batch_size):
-        #image_batch = np.zeros((self.batch_size,self.image_size,self.image_size,3))
-        image_batch = np.zeros((batch_size,self.image_size,self.image_size,1))
+        image_batch = np.zeros((batch_size,self.image_size,self.image_size,channels))
 
         for i in range(batch_size):
 
@@ -47,30 +46,25 @@ class ImageReader():
 
             #resize
             image = zoom(image, (float(self.image_size) / image.shape[0],
-                                float(self.image_size) / image.shape[1]))
+                                 float(self.image_size) / image.shape[1]))
 
             #when we wanted them in color
-            #if len(image.shape) == 2:
-            #    image = gray2rgb(image)
+            if channels==3:
+                if len(image.shape) == 2:
+                    image = gray2rgb(image)
 
-            #now we want them gray
-            if len(image.shape) == 2:
-                image.resize(self.image_size,self.image_size,1)
-            elif len(image.shape) == 3:
-                image = rgb2gray(image).reshape(self.image_size,self.image_size,1)
+            elif channels==1:
+                if len(image.shape) == 2:
+                    image.resize(self.image_size,self.image_size,1)
+                elif len(image.shape) == 3:
+                    image = rgb2gray(image).reshape(self.image_size,self.image_size,1)
 
             #rescale the values
             image = image.astype(np.float32)
-
-            #add background noise
-            #noise = np.random.normal(size=image.shape, scale=(np.max(image) - np.min(image))/3)
-            #image[image == 0] += noise[image == 0]
-
             image -= np.min(image)
 
             if np.max(image) <= 0:
                 i -= 1
-                print("!!!")
 
             else:
                 image /= np.max(image)
@@ -80,19 +74,15 @@ class ImageReader():
         return image_batch
 
     def next(self,batch_size,sample_synth):
-
         if sample_synth:
-            synth_images = self.get_batch(self.synth_queue,self.synth_filenames,self.synth_channels,batch_size)
+            synth_images = self.get_batch(self.synth_queue,self.synth_filenames,
+                                          self.synth_channels,batch_size)
             return synth_images
         else:
-            real_images = self.get_batch(self.real_queue,self.real_filenames,self.real_channels,batch_size)
+            real_images = self.get_batch(self.real_queue,self.real_filenames,
+                                         self.real_channels,batch_size)
             return real_images
 
 
 if __name__ == "__main__":
     pass
-    #reader = ImageReader('../Data/Faces_depth','../Data/lfw', 4, 28)
-    #result = reader.next(True)
-    #for i in range(1000):
-    #    result = reader.next(True)
-    #    result = reader.next(False)

@@ -7,11 +7,10 @@ from scipy.misc import imsave
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
-import model_test
+import model
 import reader
 import nd_reader
 import replay_cache
-import re
 from skimage.color import gray2rgb
 
 # Basic model parameters as external flags.  Not sure where this goes with flags.
@@ -29,17 +28,16 @@ class Train():
 
     def get_placeholder(self,batch_size):
         """
-        returns a placeholder given the dimensions.  Only works with square images
+        returns a placeholder using the FLAGS.image_size from the flag.
+        uses this for both dimensions, so assumes a sqaure
         """
-
-        #print([FLAGS.batch_size,FLAGS.image_size,FLAGS.image_size,FLAGS.channels])
         images_placeholder = tf.placeholder(tf.float32, shape=[batch_size,FLAGS.image_size,
-                                                        FLAGS.image_size,FLAGS.channels])
+                                            FLAGS.image_size,FLAGS.channels])
         return images_placeholder
 
     def print_images(self,images,synth_images,step):
         """
-        outputs n generated images at a given step
+        saves FLAGS.gen_num images to the log directory
         """
         if not os.path.exists(os.path.join(FLAGS.log_dir,self.RUNID,str(step))):
             os.mkdir(os.path.join(FLAGS.log_dir,self.RUNID,step))
@@ -55,16 +53,16 @@ class Train():
         Prints an image that is a concatenation of the synthetic image and the generated iamge
         """
         im_to_print = image if image.shape[-1] == 3 else np.concatenate(gray2rgb(image),axis=1)
-        synth_to_print = synth_image if synth_image.shape[-1] == 3 else np.concatenate(gray2rgb(synth_image),axis=1)
+        synth_to_print = synth_image if synth_image.shape[-1] == 3 \
+                         else np.concatenate(gray2rgb(synth_image),axis=1)
         to_print = np.hstack((im_to_print,synth_to_print))
         imsave(name, to_print)
 
-
-    #this should be a flag to choose optimizer (prolly just ADAM and RMS Prop)
     def get_train_op(self,loss,learning_rate,update_vars,mode):
         """
-        adds a training operation to the tensorflow graph.
-        might need to do the update_vars in order to work with batch norm
+        adds a training operation to the tensorflow graph
+        returns the variable for this operation
+        update_vars is the list of variables to update
         """
         if FLAGS.optim == "ADAM":
             optimizer = tf.train.AdamOptimizer(learning_rate)
@@ -74,6 +72,7 @@ class Train():
 
         global_step = tf.Variable(0,name="global_step")
 
+        #for wasserstain gan, loss is inverse of difference in predictions
         if FLAGS.wgan:
             loss = -loss
 
@@ -83,7 +82,7 @@ class Train():
 
     def get_l1_fetches(self,synth_placeholder,real_placeholder,model):
         """
-        get the variables to apply L1 loss on the generator
+        get the graph variables to apply L1 loss on the generator
         """
         l1_loss,generated_images = model.l1_g(synth_placeholder,real_placeholder,FLAGS.channels)
         g_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,scope="G")
@@ -95,6 +94,9 @@ class Train():
             return l1_train_op,l1_loss,generated_images
 
     def get_recon_fetches(self,synth_placeholder,model):
+        """
+        get graph variables to apply reconstruction loss on the generator
+        """
         r_loss,recon_images = model.recon_g(synth_placeholder,FLAGS.channels)
         g_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,scope="G")
         r_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,scope="R")
@@ -105,8 +107,8 @@ class Train():
 
     def get_d_fetches(self,model,synth_placeholder,real_placeholder,replay_placeholder):
         """
-        return the necessary graph variables.  Note that wgan returns an extra
-        operation to clip the weights
+        return the graph variables for the discriminator function
+        Note that wgan returns an extra operation to clip the weights
         the variables returned are:
         [d_loss,g_loss,generated_images,real_preds,synth_preds,difference]
         """
@@ -119,7 +121,7 @@ class Train():
 
     def get_g_fetches(self,synth_placeholder,real_placeholder,model):
         """
-        return the necessary graph variables.
+        return the necessary graph variables for the generator functions
         the variables returned are:
         [d_loss,g_loss,generated_images,real_preds,synth_preds,difference]
         """
@@ -131,8 +133,8 @@ class Train():
 
     def add_replay(self,feed_dict):
         """
-        add the replay placeholder.  If it is empty have to add something,
-        doesn't really matter what - so we'll add the synth_batch
+        add the experience replay placeholder.
+        If the cache is empty use the current synth_batch instead (This only affects the first run)
         """
         if self.replay.nelements > FLAGS.batch_size/2:
             replay_batch = self.replay.next()
@@ -141,8 +143,11 @@ class Train():
             synth_batch = feed_dict[self.synth_placeholder]
             feed_dict[self.replay_placeholder] = synth_batch[int(FLAGS.batch_size/2):]
 
-    #think about how to set these.
     def get_feed_dict(self,use_replay=False):
+        """
+        get a dict with a batch of real and synth images
+        also get a replay batch where the option is present
+        """
         synth_batch = self.image_reader.next(FLAGS.batch_size,True)
         real_batch = self.image_reader.next(FLAGS.batch_size,False)
         feed_dict = {self.synth_placeholder:synth_batch, self.real_placeholder:real_batch}
@@ -153,14 +158,25 @@ class Train():
         return feed_dict
 
     def get_nd_feed_dict(self):
+        """
+        Get a dict with a real batch and a synth batch from the ND dataset
+        This should get updated to use the same reader as the other data
+        """
         synth_batch,real_batch=self.nd_image_reader.next(FLAGS.batch_size)
         return{self.synth_placeholder:synth_batch, self.real_placeholder:real_batch}
 
     def l1(self,l1_fetches,feed_dict):
-            _,self.l1_loss,self.generated, = self.session.run(l1_fetches,feed_dict=feed_dict)
-            #self.d_loss ,self.difference = self.d_pass(d_fetches,feed_dict)
+        """
+        Run an L1 training pass
+        returns the loss and generator output
+        """
+        _,self.l1_loss,self.generated, = self.session.run(l1_fetches,feed_dict=feed_dict)
 
     def recon(self,recon_fetches,feed_dict):
+        """
+        Run a training pass with reconstruction error
+        returns the loss and the reconstructed images
+        """
         _,self.r_loss,self.reconstructed = self.session.run(recon_fetches,feed_dict=feed_dict)
 
 
@@ -208,8 +224,11 @@ class Train():
         if ran_d == 0:
             self.d_loss,self.difference = self.d_pass(d_fetches,g_feed_dict,False)
 
-    #will need to adopt this for batch norm
     def d_pass(self,d_fetches,feed_dict,training=True):
+        """
+        run one training pass over the discriminator
+        return the loss and the difference between the logits for the real and generated data
+        """
         if training:
             _,d_loss,*rest,difference = self.session.run(d_fetches,feed_dict=feed_dict)
         else:
@@ -217,18 +236,31 @@ class Train():
         return d_loss,difference
 
     def g_pass(self,g_fetches,feed_dict):
+        """
+        run one training pass over the generator using adversarial loss
+        return the loss and the output of the generator
+        """
         _,g_loss,generated,*rest = self.session.run(g_fetches,feed_dict=feed_dict)
         return g_loss,generated
 
     def print_generated(self,synth_batch,step):
+        """
+        print some samples from the current generator
+        """
         if self.generated is not None:
             self.print_images(self.generated,synth_batch,"step_" + str(step))
 
     def checkpoint(self,step):
+        """
+        save a tensorflow checkpoint
+        """
         checkpoint_file = os.path.join(FLAGS.log_dir, self.RUNID,'model.ckpt')
         self.saver.save(self.session, checkpoint_file, global_step=step)
 
     def load_from_checkpoint(self):
+        """
+        restore from a past training session
+        """
         step = int(FLAGS.load.split("-")[-1])
         self.saver.restore(self.session, FLAGS.load)
 
@@ -236,6 +268,9 @@ class Train():
 
     #change print_freq to display_freq
     def display(self,step):
+        """
+        display some statistics to the console
+        """
         output = "step: {} ".format(step)
 
         if FLAGS.gan:
@@ -248,10 +283,16 @@ class Train():
         print(output)
 
     def run_summary(self,fetch,feed_dict,step):
+        """
+        run summary operation on graph and update summaries
+        """
         summary = self.session.run(fetch,feed_dict=feed_dict)
         self.summary_writer.add_summary(summary,global_step=step)
 
     def get_summary_fetch(self,scope):
+        """
+        get summary variables from graph
+        """
         summaries = tf.get_collection(tf.GraphKeys.SUMMARIES,scope=scope)
         if len(summaries):
             return tf.summary.merge(summaries)
@@ -259,7 +300,6 @@ class Train():
     def add_summaries(self,step,super_feed_dict,unsuper_feed_dict):
         """
         add the tensorflow summaries associated with the various losses
-        The passed in feed dicts can exist or can be none
         """
         l1_sum = self.get_summary_fetch("L1")
         r_sum = self.get_summary_fetch("R")
@@ -278,8 +318,9 @@ class Train():
 
     def run_training(self):
         """
-        run training.  Most of the variables are set in the flags.  As of now
-        we have two potential training policies that have some repetitive code
+        train the model.  Most of the variables are set in the flags.  As of now
+        we have two potential training policies for the gan (wgan, "basic")
+        and the corresponding function is called to determine which passes to run
         """
         model = model_test.GanModel(FLAGS.batch_size,FLAGS.image_size,FLAGS.gen_arch,FLAGS.batch_norm)
 
@@ -291,8 +332,11 @@ class Train():
 
         if FLAGS.use_replay:
             self.replay = replay_cache.ReplayCache(FLAGS.cache_size,FLAGS.batch_size/2,
-                                    [FLAGS.image_size,FLAGS.image_size,FLAGS.channels],
-                                    FLAGS.cache_path, FLAGS.reuse_replay)
+                                                  [FLAGS.image_size,
+                                                   FLAGS.image_size,
+                                                   FLAGS.channels],
+                                                   FLAGS.cache_path,
+                                                   FLAGS.reuse_replay)
 
         graph = tf.Graph()
         with graph.as_default():
@@ -307,7 +351,8 @@ class Train():
                 recon_fetches = self.get_recon_fetches(self.synth_placeholder,model)
 
             if FLAGS.gan:
-                d_fetches = self.get_d_fetches(model,self.synth_placeholder,self.real_placeholder, self.replay_placeholder)
+                d_fetches = self.get_d_fetches(model,self.synth_placeholder,self.real_placeholder,
+                                               self.replay_placeholder)
                 g_fetches = self.get_g_fetches(self.synth_placeholder,self.real_placeholder,model)
 
             init = tf.global_variables_initializer()
@@ -323,15 +368,15 @@ class Train():
                                         self.session.graph)
 
                 # Run the Op to initialize the variables.
-                prev_steps =0
+                prev_steps = 0
                 if FLAGS.load is not None:
                     prev_steps = self.load_from_checkpoint()
                 else:
                     self.session.run([init])
 
-                #run
-                #regardless of the algorithm, each step is one batch of data running through the generator
-                #(or 2 if doing L1 with notre dame as well)
+                #for the gan, regardless of the algorithm chosen,
+                #each step is one batch of data running through the generator
+                #L1 is implemented as a separate step
                 for step in xrange(prev_steps, prev_steps + FLAGS.max_steps):
 
                     #get the new batch data
@@ -432,14 +477,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--use_nd_L1',
         action='store_true',
-        default=False,
         help='use the supervised data set for pre-training'
     )
     parser.add_argument(
         '--use_nd_gan',
         action='store_true',
-        default=False,
-        help='use the supervised data set for pre-training'
+        help='use the supervised data set for GAN'
     )
     parser.add_argument(
         '--load',
@@ -524,7 +567,6 @@ if __name__ == '__main__':
     parser.add_argument(
         '--L1',
         action='store_true',
-        default=False,
         help='Use L1 loss'
         )
     parser.add_argument(
@@ -542,13 +584,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--L2gan',
         action='store_true',
-        default=False,
         help='Use L2 Discirminator Loss'
     )
     parser.add_argument(
         '--wgan',
         action='store_true',
-        default=False,
         help='Use Wgan Approach'
     )
 
@@ -580,7 +620,7 @@ if __name__ == '__main__':
         '--gen_print_freq',
         type=int,
         default= 500,
-        help='Frequency at which to generate the images'
+        help='Frequency at which to print generated images'
     )
     parser.add_argument(
         '--gen_num',
@@ -597,13 +637,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_norm',
         action='store_true',
-        default=False,
         help='Use batch norm for all layers'
     )
     parser.add_argument(
         '--use_replay',
         action='store_true',
-        default=False,
         help='Use experience replay'
     )
     parser.add_argument(
@@ -621,13 +659,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--reuse_replay',
         action='store_true',
-        default=False,
-        help='whether to load the cache or start anew'
+        help='whether to load the cache or start a new cache'
     )
     parser.add_argument(
         '--use_recon',
         action='store_true',
-        default=False,
         help='Add Reconstruction Loss to the generator'
     )
 
