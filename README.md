@@ -9,7 +9,7 @@ a GAN model, with the option of adding L1 loss from supervised pairs, or reconst
 - python 3
 - tensorflow 1.0
 
-### Usage
+### Basic Usage
 
 The basic usage to train a GAN model is:
 ```
@@ -34,5 +34,7 @@ I had a lot of success by adding experience replay - which can be accomplished w
 --reuse_replay (default False) : load the cache existing at the specified location
 --cache_size (default 100,000) : the number of images to store in the cache
 ```
+### Adding L1 Loss:
 
+The code currently supports adding L1 loss in two ways - from supervised data and from reconstruction error.  The image is reconstructed with an model identical to the generator/refiner, but the weights are not shared.  I plan to add L1 loss between the synthetic image and the generated images as well
 
