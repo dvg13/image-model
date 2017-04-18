@@ -34,7 +34,7 @@ With that out of the way, even with the small training sample, this worked reall
 
 <img src="images/supervised_faces.png"/> <img src="images/supervised_big_faces.png"/>
 
-This, I think, is a real testament to how nice it is to have supervised data.  The approaches with no superversion or weaker supervision are undoubtedly cooler, but this just kinda works.  An interesting point to think about as well, is that where it's possible to generate the model from the images - then you can use supervised learning without a dataset.  This would be the case if, for example, your model was an edge image.  It may be possible for this particular task as well, as there are some papers where they were able to [generate basel face models](https://arxiv.org/pdf/1701.05360.pdf) for faces where there multiple images of the same face.  
+This, I think, is a real testament to how nice it is to have supervised data.  The approaches with no superversion or weaker supervision are undoubtedly cooler, but this just kinda works.  An interesting point to think about as well, is that where it's possible to generate the model from the images - then you can use supervised learning without a dataset.  This would be the case if, for example, your model was an edge image.  It may be possible for this particular task as well, as there are some papers where they were able to [generate basel face models](https://arxiv.org/pdf/1701.05360.pdf) from images.
 
 
 
