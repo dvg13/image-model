@@ -62,6 +62,20 @@ The GAN component definitely needs more tweeking.  There are techniques like fea
 
 Another way to go with this would be to add conditions (hair color, glasses, beards, skin tone, etc).  While it seems to me that it's intuitively harder to generate an image with an added condition, the opposite seems to be true with GAN's.  This actually makes a lot of sense.  In a conditional GAN, the discriminator is trained on not only whether the images are real, but also whether the real images have certain attributes.  This is a lot of additinal information.  With this approach, you have a model that's trained to look for relavent features, and then uses these same filters to discriminate between the image classes.  This should force it to do this on the basis of patterns like those found in the relevant features, which should lead to better generations.  
 
+### Semi-Supervised
+
+Unfortunately the GAN didn't lead to faces that really met either goal #1 or goal #2.  They weren't that realistic and they weren't particularly bound to the model.  Assuming that we could get the GAN to be more realistic, there would still be the second issue.
+
+One way to try to enforce cohesion with the model in a completely unsupervised fashion is to add reconstruction loss.  We can add another function that maps the generated image back to the model.  While this isn't an explicit constraint in the mathematical sense, this should discourage the generator from mapping the model into something "difficult" to reconstruct.  Adding weight regularization to this second network may further encourage this.  
+
+<img src="images/Reconstruction.png" width=384px>
+
+Unfortunately, I never got reasonable results with this.  I think getting the reconstruction loss right is tricky.  Towards the end of the project period, [this paper](https://arxiv.org/pdf/1703.10593.pdf) came out that uses reconstruction loss in this way, so it must be doable.  
+
+I got a little better results with a semi-supervervised version of this.  This is roughly inspired by [this paper](https://arxiv.org/pdf/1611.02200.pdf) that maps faces to emojis.  Here, I am taking the arhitecture above, but replacing the generator with a combination of a fixed encoder and trainable decoder, and replacing the reconstructor with only the fixed encoder.  The encoder is trained as a cross encoder.  The image quality didn't quite break through, and there were still issues with mode collapse, but I think this would be worth tuning in the future.  
+
+<img src="images/Cross Encoder 2.png" width=192px>
+<img src="images/Cross Encoder.png" width=384px> 
 
 
 
