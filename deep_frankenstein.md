@@ -82,6 +82,6 @@ Lastly, a really simple way to do this in a semi-supervised fashion is to combin
 
 ### Conclusions
 
-It was really a whirlwind of experimentation, which makes it hard to come away with definite conclusions.  Still, I think the real takeaways are that supervised training is pretty awesome, and that training a GAN to go from a model to a realistic output is hard, largely due to mode collapse.  Hopefully in the future I'll have more to say about how to solve that and hopefully will have applied these ideas to audio. 
+It was really a whirlwind of experimentation.  I think the real takeaways are that supervised training is pretty awesome, and that training a GAN to go from a model to a realistic output is hard, largely due to mode collapse.  Hopefully in the future I'll have more to say about how to solve this problem and will have applied some of these techniques to speech.  
 
 
