@@ -58,6 +58,10 @@ I tried to deal with this in a couple of ways.  Firstly, I experimented with L2 
 
 <img src="images/Replay Cache.png" height=256px/> <img src="images/results.png"/>
 
+The GAN component definitely needs more tweeking.  There are techniques like feature matching ([see here](https://arxiv.org/pdf/1606.03498.pdf)) that try to explicitly enforce beter hetergeneity in the generated images.  It might also be useful to use something like a variational auto-encoder where you force the maps to represent a normally distributed latent space.  One difference with refining an image as opposed to using noise, is that in the case of noise the generator is fed points resaonably sampled from a distribution.  Forcing the models to do the same could certainly be useful.  
+
+Another way to go with this would be to add conditions (hair color, glasses, beards, skin tone, etc).  While it seems to me that it's intuitively harder to generate an image with an added condition, the opposite seems to be true with GAN's.  This actually makes a lot of sense.  In a conditional GAN, the discriminator is trained on not only whether the images are real, but also whether the real images have certain attributes.  This is a lot of additinal information.  With this approach, you have a model that's trained to look for relavent features, and then uses these same filters to discriminate between the image classes.  This should force it to do this on the basis of patterns like those found in the relevant features, which should lead to better generations.  
+
 
 
 
