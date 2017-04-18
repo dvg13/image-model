@@ -30,10 +30,11 @@ I used the pictured generator/refiner architecture.  Unless otherwise noted, I u
 
 <img src="images/U-shaped.png"/>
 
-With that out of the way, even with the small training sample, this worked really well.  It created realistic faces, and the faces are of different people.  I think this point is important.  While it's a matter of how you define the task, I think a successful model should find face "types" that correlate to the depth maps, as opposed to taking a particular face type and stretching it into every possible shape.  I'll show some of the results here.  These were randomly selected from a "test" set of images that I generated (as opposed to the ND depth maps that it was trained on).  
+With that out of the way, even with the small training sample, this worked really well.  It created realistic faces, the faces match the depth maps, and the faces are of different people.  I think this last point is important.  While it's a matter of how you define the task, I think a successful model should find face "types" that correlate to the depth maps, as opposed to taking a particular face type and stretching it into every possible shape.  I'll show some of the results here.  These were randomly selected from a "test" set of images that I generated (as opposed to the ND depth maps that it was trained on).  
 
-<img src="images/supervised_faces.jpg"/>
+<img src="images/supervised_faces.png"/> <img src="images/supervised_big_faces.png"/>
 
+This, I think, is a real testament to how nice it is to have supervised data.  The approaches with no superversion or weaker supervision are undoubtedly cooler, but this just kinda works.  An interesting point to think about as well, is that where it's possible to generate the model from the images - then you can use supervised learning without a dataset.  This would be the case if, for example, your model was an edge image.  It may be possible for this particular task as well, as there are some papers where they were able to [generate basel face models](https://arxiv.org/pdf/1701.05360.pdf) for faces where there multiple images of the same face.  
 
 
 
