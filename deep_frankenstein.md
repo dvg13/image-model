@@ -17,11 +17,22 @@ I was hoping to spend more time on the second question, but found it more diffic
 
 As an aside, my original goal was to take a robotic sounding speech synthesizer and try to convert that to realistic sounding speech, and I hope to look into that over the next couple of weeks.  
 
-### Data and such
+### Data
 <img src="images/basel.png"/>
 
-To generate the depth maps I generated models with the Basel Face Model.  The model itself was created by averaging 100 faces.  To sample a model from it, one specifies a vector of 15 principal components.  The model has both shape and texture, but I only used the shape component.  This is represented by a .ply file, which is basically just a list of polygons.  To convert this into a depth map I sampled points from the polygons and then resized to my desired image size.  The level of detail the depth map is to an extent determined by the number of points sampled.  
+To generate the depth maps I generated models with the Basel Face Model.  The model itself was created by averaging 100 faces.  To sample a model from it, one specifies a vector of 15 principal components.  The model has both shape and texture, but I only used the shape component.  This is represented by a .ply file, which is basically just a list of polygons.  To convert this into a depth map I sampled points from the polygons and then resized to my desired image size (128 X 128).  
 
+### Supervised Approach
+
+My first approach to tackling the problem was to use supervised learning.  There are a number of datasets that have depth maps and face images - these seem to have been used for face recognition in the early 2000's.  The only one that I was able to obtain is the Notre Dame Collection D dataset, which is pretty small, having images of 377 people.  
+
+I used the pictured generator/refiner architecture.  Unless otherwise noted, I used this generator for all of the experiments.  Looking back, it may have worthwhile to experiment with a larger network.  A couple of other people in the insight group also used sub-pixel convolutions for the upsampling as opposed to deconvolutions/fractionally strided convolutions, and seemed to get good results.  
+
+<img src="images/U-shaped.png"/>
+
+With that out of the way, even with the small training sample, this worked really well.  It created realistic faces, and the faces are of different people.  I think this point is important.  While it's a matter of how you define the task, I think a successful model should find face "types" that correlate to the depth maps, as opposed to taking a particular face type and stretching it into every possible shape.  I'll show some of the results here.  These were randomly selected from a "test" set of images that I generated (as opposed to the ND depth maps that it was trained on).  
+
+<img src="images/supervised_faces.jpg"/>
 
 
 
