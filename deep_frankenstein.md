@@ -72,12 +72,13 @@ One way to try to enforce cohesion with the model in a completely unsupervised f
 
 Unfortunately, I never got reasonable results with this.  I think getting the reconstruction loss right is tricky.  Towards the end of the project period, [this paper](https://arxiv.org/pdf/1703.10593.pdf) came out that uses reconstruction loss in this way, so it must be doable.  
 
-I got a little better results with a semi-supervervised version of this.  This is roughly inspired by [this paper](https://arxiv.org/pdf/1611.02200.pdf) that maps faces to emojis.  Here, I am taking the arhitecture above, but replacing the generator with a combination of a fixed encoder and trainable decoder, and replacing the reconstructor with only the fixed encoder.  The encoder is trained as a cross encoder.  The image quality didn't quite break through, and there were still issues with mode collapse, but I think this would be worth tuning in the future.  
+I got a little better results with a semi-supervervised version of this.  This is roughly inspired by [this paper](https://arxiv.org/pdf/1611.02200.pdf) that maps faces to emojis.  Here, I am taking the arhitecture above, but replacing the generator with a combination of a fixed encoder and trainable decoder, and replacing the reconstructor with only the fixed encoder.  The encoder is trained as a cross-encoder.  The image quality didn't quite break through, and there were still issues with mode collapse, but I think this would be worth tuning in the future.  
 
-<img src="images/Cross Encoder 2.png" width=192px>
-<img src="images/Cross Encoder.png" width=384px> 
+<img src="images/semi.png">
 
+Lastly, a really simple way to do this in a semi-supervised fashion is to combine the L1 loss from the paired images with the adversarial loss from the inpaired images.  This is similar to the [Pix-2-Pix](https://phillipi.github.io/pix2pix/) approach, only using a separate set of images to add the adversarial loss, as opposed to the same set as in the paired images.  These images are more similar to the supervised data set than I would like, given that it's a pretty limited dataset, but the pictures are also more natural.  Here are some results:
 
+<img src="images/simple_semi.png">
 
 
 
