@@ -36,5 +36,11 @@ With that out of the way, even with the small training sample, this worked reall
 
 This, I think, is a real testament to how nice it is to have supervised data.  The approaches with no superversion or weaker supervision are undoubtedly cooler, but this just kinda works.  An interesting point to think about as well, is that where it's possible to generate the model from the images - then you can use supervised learning without a dataset.  This would be the case if, for example, your model was an edge image.  It may be possible for this particular task as well, as there are some papers where they were able to [generate basel face models](https://arxiv.org/pdf/1701.05360.pdf) from images.
 
+### Unsupervised
+
+I'll open up the discussion of doing this in an unsupervised manner by showing some results:
+
+<img src="images/gan_first.png"/>
+
 
 
