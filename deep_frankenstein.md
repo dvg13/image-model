@@ -18,7 +18,7 @@ I was hoping to spend more time on the second question, but found it more diffic
 As an aside, my original goal was to take a robotic sounding speech synthesizer and try to convert that to realistic sounding speech, and I hope to look into that over the next couple of weeks.  
 
 ### Data and such
-<img src="images/Bringing Synthetic Faces to Life.png"/>
+<img src="images/basel.png"/>
 
 To generate the depth maps I generated models with the Basel Face Model.  The model itself was created by averaging 100 faces.  To sample a model from it, one specifies a vector of 15 principal components.  The model has both shape and texture, but I only used the shape component.  This is represented by a .ply file, which is basically just a list of polygons.  To convert this into a depth map I sampled points from the polygons and then resized to my desired image size.  The level of detail the depth map is to an extent determined by the number of points sampled.  
 
