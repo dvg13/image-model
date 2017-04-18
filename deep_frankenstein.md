@@ -44,8 +44,23 @@ I'll open up the discussion of doing this in an unsupervised manner by showing s
 
 These images are from the first run where I got reasonable results.  I think it's cool that the model created pictures with different facial expressions.  Especially looking at the mouth - some faces have open mouths, and the larger images appears to be smiling.  One could argue that this isn't particularly faithful to the depth maps (which have closed mouths to the extent they mouths at all), but I think being able to add these features is a lot of the appeal of the process of upgrading a model. 
 
-Getting to this point was more challenging than anticipated.  I thought that because it's pretty easy to learn the mapping from supervised data, that even given GAN's (Generative Adversarial Networks) reputation for being hard to train, that it wouldn't be that bad in this case.  This didn't really end up being true.  Firstly though, here's a brief description of how a GAN works, as illustrated here:
+Getting to this point was more challenging than anticipated.  I thought that because it's pretty easy to learn the mapping from supervised data, that even given GAN's (Generative Adversarial Networks) reputation for being hard to train, that it wouldn't be that bad in this case.  This didn't really end up being true.  Firstly though, here's a brief description of how a GAN or adversarial loss works, as illustrated here:
 
 <img src="images/GAN.png"/>
 
-Basically you train a second function called a disciminator.  The input to the discriminator is real images from the data set as well as generated images.  This loss for this function is how well it can determine which set each image came from, and this loss gets backpropogated to the generator/refiner.  This loss allows for the generator to learn how to create images that are hard to distinguish from those in the real dataset at a given point in time.  The time part is where it get's tricky, because the discirminator is not an oracle function, but something that itself is being trained.  Sometimes it may pick irrelevant features to distinguish the two classes, and only towards of the end of training will it be faced with distinguishing between reasonably good generations and real images.  Most of the time the difference is really obvious and the discriminator doesn't have to pick interesting features to distinguish the two.    
+Basically you train a second function called a disciminator.  The input to the discriminator is real images from the data set as well as generated images.  This loss for this function is how well it can determine which set each image came from, and this loss gets backpropogated to the generator/refiner.  This loss allows for the generator to learn how to create images that are hard to distinguish from those in the real dataset at a given point in time.  The time part is where it get's tricky, because the discirminator is not an oracle function, but something that itself is being trained.  Sometimes it may pick irrelevant features to distinguish the two classes, and only towards of the end of training will it be faced with distinguishing between reasonably good generations and real images.  Most of the time the difference is really obvious and the discriminator doesn't have to pick useful features.
+
+The problem that I was having is what in GAN literature is refered to as "mode collapse."  Ideally you want to map your noise, or in my case, my depth map, to a range of possible outputs.  What often happens though, is that the network instead, maps all inputs to the same image - in this case the same face.  In addition, I found that the model was cycling through these faces as it ran.  Here is an example of this.  
+
+<img src="images/cycles.png"/>
+
+I tried to deal with this in a couple of ways.  Firstly, I experimented with L2 loss as outlined in [this paper](https://arxiv.org/pdf/1611.04076.pdf) and Wasserstein distance loss as outlined [here](https://arxiv.org/pdf/1701.07875.pdf), but neither improved the images.  I also tried a technique called experience replay.  Here, instead of feeding the discriminator only the images that have just been generated, you feed it a combination of those images and images that were generated in past steps.  This doesn't stop the mode collapse, but I think that it helps lessen the extent of the cycling.  Using this, I got somewhat better images. 
+
+<img src="images/Replay Cache.png" height=256px/> <img src="images/results.png"/>
+
+
+
+
+
+
+
