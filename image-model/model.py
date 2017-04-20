@@ -4,7 +4,7 @@ def LReLU(x,alpha):
     return tf.maximum(alpha*x,x)
 
 class GanModel():
-    def __init__(self,batch_size=10,image_size=128,gen_arch="U",batch_norm=False,noise_size=100):
+    def __init__(self,batch_size=10,image_size=128,gen_arch="U",batch_norm=False,training=True,noise_size=100):
         self.batch_size=batch_size
         self.image_size=image_size
         self.noise_size=noise_size
@@ -19,10 +19,10 @@ class GanModel():
             self.generator = self. u_generator_noise
 
         self.batch_norm=batch_norm
-        print(self.batch_norm)
+        self.training=training
 
     def conv2d(self,x, input_channels, num_filters, f_size,strides=(1,1,1,1),activation=LReLU,use_bias=True,
-               scope=None,training=True):
+               scope=None):
         with tf.variable_scope(scope):
             filters = tf.get_variable("filters",[f_size[0],f_size[1],input_channels, num_filters])
             result = tf.nn.conv2d(x, filters, strides, padding="SAME")
@@ -33,7 +33,7 @@ class GanModel():
 
             if self.batch_norm:
                 result = tf.contrib.layers.batch_norm(result,decay=.9,center=True,scale=True,
-                                                      updates_collections=None,is_training=training)
+                                                      updates_collections=None,is_training=self.training)
 
             if activation == LReLU:
                 alpha = tf.constant(.01)
@@ -44,7 +44,7 @@ class GanModel():
             return result
 
     def deconv2d(self,x,image_size,input_channels, num_filters, f_size,strides=(1,1,1,1),
-                 activation=LReLU,use_bias=True,scope=None,training=True):
+                 activation=LReLU,use_bias=True,scope=None):
         with tf.variable_scope(scope):
 
             filters = tf.get_variable("filters",[f_size[0],f_size[1],num_filters,input_channels])
@@ -57,19 +57,17 @@ class GanModel():
 
             if self.batch_norm:
                 result = tf.contrib.layers.batch_norm(result,decay=.9,center=True,scale=True,
-                    updates_collections=None, is_training=training)
+                    updates_collections=None, is_training=self.training)
 
             if activation == LReLU:
                 alpha = tf.constant(.01)
                 result = LReLU(result,alpha)
-
             else:
                 result = activation(result)
 
-            #if batch norm is true
             return result
 
-    def dense(self,x, input_size, output_size, activation=None,use_bias=True,scope=None,training=True):
+    def dense(self,x, input_size, output_size, activation=None,use_bias=True,scope=None):
         with tf.variable_scope(scope):
             weights = tf.get_variable("weights",[input_size,output_size])
             result = tf.matmul(x,weights)
@@ -80,7 +78,7 @@ class GanModel():
 
             if self.batch_norm:
                 result = tf.contrib.layers.batch_norm(result,decay=.9,center=True,scale=True,
-                                                      updates_collections=None,is_training=training)
+                                                      updates_collections=None,is_training=self.training)
 
             if activation is not None:
                 result = activation(result)
