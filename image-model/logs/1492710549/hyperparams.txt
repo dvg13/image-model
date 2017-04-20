@@ -1,0 +1,1 @@
+--synth_dir=../Project/Data/Faces_depth --real_dir=../Project/Data/Faces_celebacropped --disply_freq=5 --batch_norm --ckpt_freq=100 --max_steps=200 --batch_size=8

@@ -6,7 +6,7 @@ from scipy.misc import imsave
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
-import model_test
+import model as tf_model
 import single_reader as reader
 
 from skimage.color import gray2rgb
@@ -45,7 +45,7 @@ def get_test_fetch(synth_placeholder,model):
     get the generated images variable from the tensorflow graph
     """
     with tf.variable_scope("G"):
-        generated_images = model.generator(synth_placeholder,FLAGS.channels,is_training=False)
+        generated_images = model.generator(synth_placeholder,FLAGS.channels)
     return generated_images
 
 def test():
@@ -54,7 +54,7 @@ def test():
     """
     image_reader = reader.ImageReader(FLAGS.test_dir,FLAGS.image_size,FLAGS.channels)
     num_images = image_reader.num_images()
-    model = model_test.GanModel(FLAGS.batch_size,FLAGS.image_size,FLAGS.gen_arch,FLAGS.batch_norm,training=False)
+    model = tf_model.GanModel(FLAGS.batch_size,FLAGS.image_size,FLAGS.gen_arch,FLAGS.batch_norm,training=False)
 
     graph = tf.Graph()
     with graph.as_default():
