@@ -46,7 +46,7 @@ These images are from the first run where I got reasonable results.  I think it'
 
 Getting to this point was more challenging than anticipated.  I thought that because it's pretty easy to learn the mapping from supervised data, that even given GAN's (Generative Adversarial Networks) reputation for being hard to train, that it wouldn't be that bad in this case.  This didn't really end up being true.  Firstly though, here's a brief description of how a GAN or adversarial loss works, as illustrated here:
 
-<img src="images/GAN.png"/>
+<img src="images/GAN.png">
 
 Basically you train a second function called a disciminator.  The input to the discriminator is real images from the data set as well as generated images.  This loss for this function is how well it can determine which set each image came from, and this loss gets backpropogated to the generator/refiner.  This loss allows for the generator to learn how to create images that are hard to distinguish from those in the real dataset at a given point in time.  The time part is where it get's tricky, because the discirminator is not an oracle function, but something that itself is being trained.  Sometimes it may pick irrelevant features to distinguish the two classes, and only towards of the end of training will it be faced with distinguishing between reasonably good generations and real images.  Most of the time the difference is really obvious and the discriminator doesn't have to pick useful features.  Note that in a standard GAN you create the images from noise and the generator is only a deconder, where as here you are generate an image from another image and the generator is an encoder/decoder.
 
