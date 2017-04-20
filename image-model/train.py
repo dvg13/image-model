@@ -7,7 +7,7 @@ from scipy.misc import imsave
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
-import model
+import model as tf_model
 import reader
 import nd_reader
 import replay_cache
@@ -322,7 +322,7 @@ class Train():
         we have two potential training policies for the gan (wgan, "basic")
         and the corresponding function is called to determine which passes to run
         """
-        model = model_test.GanModel(FLAGS.batch_size,FLAGS.image_size,FLAGS.gen_arch,FLAGS.batch_norm)
+        model = tf_model.GanModel(FLAGS.batch_size,FLAGS.image_size,FLAGS.gen_arch,FLAGS.batch_norm)
 
         if FLAGS.gan and not FLAGS.use_nd_gan or FLAGS.L1 and not FLAGS.use_nd_L1:
             self.image_reader = reader.ImageReader(FLAGS.synth_dir,FLAGS.real_dir,FLAGS.image_size)
