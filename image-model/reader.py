@@ -8,7 +8,7 @@ import random
 from skimage.color import rgb2gray,gray2rgb
 
 class ImageReader():
-    def __init__(self,synth_directory,real_directory,image_size,synth_channels=3,real_channels=3):
+    def __init__(self,synth_directory,real_directory,image_size,synth_channels=1,real_channels=1):
         self.synth_directory = synth_directory
         self.real_directory = real_directory
         self.image_size = image_size
